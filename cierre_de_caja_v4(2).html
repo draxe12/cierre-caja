@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Cierre de Caja</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f5f6f8}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}
+.app{max-width:760px;margin:auto;padding:18px 14px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+h1{font-size:22px;margin:0}.sub{color:#6b7280;font-size:13px;margin-top:3px}
+.card{background:white;border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #00000008}
+.card h2{font-size:16px;margin:0 0 13px}
+.grid{display:grid;grid-template-columns:1fr 140px;gap:9px 12px;align-items:center}
+label{font-size:14px;color:#374151}.money{position:relative}.money span{position:absolute;left:10px;top:9px;color:#6b7280;font-size:14px}.money input{width:100%;padding:8px 9px 8px 28px;border:1px solid #d1d5db;border-radius:9px;text-align:right}
+.money input:focus,input.qty:focus{outline:2px solid #c7d2fe;border-color:#6366f1}
+.count-grid{display:grid;grid-template-columns:1fr 82px 105px;gap:8px;align-items:center}
+.count-grid .head{font-size:12px;color:#6b7280}.denom{font-weight:600}.qty{width:100%;padding:8px;border:1px solid #d1d5db;border-radius:9px;text-align:center}.subtotal{text-align:right;font-variant-numeric:tabular-nums}
+.total-box{display:flex;justify-content:space-between;align-items:end;margin-top:14px;padding-top:13px;border-top:1px solid #e5e7eb}.big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}.primary{background:#111827;color:white}.secondary{background:#eef2f7;color:#111827}
+.result{border-radius:14px;padding:14px;margin-top:10px}.ok{background:#ecfdf5;border:1px solid #a7f3d0}.bad{background:#fff1f2;border:1px solid #fecdd3}.warn{background:#fffbeb;border:1px solid #fde68a}.neutral{background:#f3f4f6}
+.result-title{font-weight:800;font-size:17px}.result-amount{font-size:25px;font-weight:900;margin-top:3px}.muted{font-size:13px;color:#6b7280}.rows{margin-top:12px}.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:14px}.row:last-child{border-bottom:0}.value{font-weight:700;font-variant-numeric:tabular-nums}
+.history-item{padding:11px 0;border-bottom:1px solid #e5e7eb}.history-item:last-child{border-bottom:0}.history-top{display:flex;justify-content:space-between;font-weight:700}.small{font-size:12px;color:#6b7280}.danger{color:#be123c}.success{color:#047857}.warntext{color:#b45309}
+footer{font-size:12px;color:#6b7280;text-align:center;margin-top:18px}
+@media(max-width:520px){.grid{grid-template-columns:1fr 130px}.count-grid{grid-template-columns:1fr 70px 95px}.app{padding:14px 10px 30px}}
+</style>
+
+<style id="final-total-style">
+.final-total-card{margin-top:18px;border:2px solid rgba(127,127,127,.22)}
+.final-total-label{text-align:center;opacity:.72;font-size:.95rem}
+.final-total-value{text-align:center;font-size:2.2rem;font-weight:800;margin:6px 0}
+.final-total-status{text-align:center;font-weight:700;margin-bottom:14px}
+.final-total-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.final-total-breakdown div{padding:10px;border-radius:10px;background:rgba(127,127,127,.08);display:flex;flex-direction:column;gap:3px}
+.final-total-breakdown span{font-size:.82rem;opacity:.7}
+.final-total-breakdown strong{font-size:1rem}
+@media(max-width:650px){.final-total-breakdown{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Cierre de caja</h1><div class="sub">Conciliación rápida • funciona sin internet</div></div>
+  <button class="btn secondary" onclick="clearForm()">Limpiar</button>
+</header>
+
+<section class="card">
+<h2>1. Sistema de facturación</h2>
+<div class="grid">
+<label>Apertura</label><div class="money"><span>S/</span><input id="opening" inputmode="decimal" value="500.00"></div>
+<label>Efectivo</label><div class="money"><span>S/</span><input id="sysCash" inputmode="decimal" value="1736.50"></div>
+<label>Depósito</label><div class="money"><span>S/</span><input id="sysDeposit" inputmode="decimal" value="727.30"></div>
+<label>Tarjeta</label><div class="money"><span>S/</span><input id="sysCard" inputmode="decimal" value="12.00"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>2. POS</h2>
+<div class="grid">
+<label>Depósito total</label><div class="money"><span>S/</span><input id="posDeposit" inputmode="decimal" value="655.00"></div>
+<label>Tarjeta total</label><div class="money"><span>S/</span><input id="posCard" inputmode="decimal" value="73.50"></div>
+</div>
+<div class="muted" style="margin-top:9px">Aquí juntas Yape, Plin y demás pagos digitales que el POS muestre como depósito.</div>
+</section>
+
+<section class="card">
+<h2>3. Efectivo contado</h2>
+<div class="quick-cash">
+  <div class="muted">Para una verificación rápida, ingresa directamente cuánto efectivo tienes.</div>
+  <div class="money quick-money"><span>S/</span><input id="cashDirect" inputmode="decimal" placeholder="0.00"></div>
+  <div class="total-box"><span>Efectivo contado</span><span class="big" id="cashCount">S/ 0.00</span></div>
+</div>
+<button class="btn secondary" type="button" onclick="toggleCounter()" id="counterToggle">🧮 Contar billetes y monedas</button>
+<div id="denomCounter" style="display:none;margin-top:14px">
+  <div class="muted" style="margin-bottom:9px">Herramienta opcional. Al terminar, puedes pasar el total al campo de efectivo contado.</div>
+  <div class="count-grid">
+  <div class="head">Denominación</div><div class="head">Cantidad</div><div class="head">Subtotal</div>
+  <div class="denom">S/ 200</div><input class="qty" data-value="200" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 100</div><input class="qty" data-value="100" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 50</div><input class="qty" data-value="50" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 20</div><input class="qty" data-value="20" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 10</div><input class="qty" data-value="10" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 5</div><input class="qty" data-value="5" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 2</div><input class="qty" data-value="2" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 1</div><input class="qty" data-value="1" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 0.50</div><input class="qty" data-value="0.5" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 0.20</div><input class="qty" data-value="0.2" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  <div class="denom">S/ 0.10</div><input class="qty" data-value="0.1" value="0" inputmode="numeric"><div class="subtotal">S/ 0.00</div>
+  </div>
+  <div class="total-box"><span>Total del contador</span><span class="big" id="denomTotal">S/ 0.00</span></div>
+  <button class="btn secondary" type="button" onclick="useDenomTotal()">Usar este total como efectivo contado</button>
+</div>
+</section>
+
+<section class="card">
+<h2>4. Resultado</h2>
+<div id="result"></div>
+<div class="actions" style="margin-top:12px">
+<button class="btn primary" onclick="saveClose()">Guardar cierre</button>
+<button class="btn secondary" onclick="showHistory()">Historial</button>
+</div>
+</section>
+
+<section class="card" id="history" style="display:none">
+<h2>Historial local</h2>
+<div id="historyList"></div>
+<button class="btn secondary" onclick="clearHistory()">Borrar historial</button>
+</section>
+<footer>Los datos se guardan únicamente en este dispositivo mediante localStorage.</footer>
+</div>
+
+<script>
+const money=n=>'S/ '+(Number(n)||0).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const num=id=>Math.round((parseFloat(document.getElementById(id).value.replace(',','.'))||0)*100)/100;
+const signed=n=>(n>=0?'+':'−')+money(Math.abs(n));
+
+function calculate(){
+  const opening=num('opening'), sysCash=num('sysCash'), sysDeposit=num('sysDeposit'), sysCard=num('sysCard');
+  const posDeposit=num('posDeposit'), posCard=num('posCard');
+  let cash=num('cashDirect');
+  let denomTotal=0;
+  document.querySelectorAll('.qty').forEach(el=>{
+    const v=parseFloat(el.value)||0, d=parseFloat(el.dataset.value);
+    const sub=Math.round(v*d*100)/100; denomTotal+=sub;
+    el.parentElement.querySelectorAll('.subtotal')[0].textContent=money(sub);
+  });
+  denomTotal=Math.round(denomTotal*100)/100;
+  document.getElementById('denomTotal').textContent=money(denomTotal);
+  document.getElementById('cashCount').textContent=money(cash);
+
+  const expectedCash=opening+sysCash;
+  const cashDiff=cash-expectedCash;
+  const depDiff=posDeposit-sysDeposit;
+  const cardDiff=posCard-sysCard;
+  const digitalDiff=(posDeposit+posCard)-(sysDeposit+sysCard);
+
+  // A positive depDiff means POS has more deposit than system.
+  // Opposite-signed deposit/card differences indicate a possible classification swap.
+  let cross=0, crossText='';
+  if(depDiff*cardDiff<0){
+    cross=Math.min(Math.abs(depDiff),Math.abs(cardDiff));
+    const from=depDiff<0?'depósito → tarjeta':'tarjeta → depósito';
+    crossText=`Posible cruce de ${money(cross)} (${from}).`;
+  }
+
+  let cashClass=Math.abs(cashDiff)<0.005?'ok':'bad';
+  let cashTitle=Math.abs(cashDiff)<0.005?'✓ Efectivo cuadra':cashDiff<0?'🔴 Falta efectivo':'🟢 Sobra efectivo';
+  let html=`<div class="result ${cashClass}">
+    <div class="result-title">${cashTitle}</div>
+    <div class="result-amount">${money(Math.abs(cashDiff))}</div>
+    <div class="muted">Contado ${money(cash)} · esperado ${money(expectedCash)}</div>
+  </div>`;
+
+  const digitalOk=Math.abs(digitalDiff)<0.005;
+  html+=`<div class="result ${digitalOk?'ok':'warn'}">
+    <div class="result-title">${digitalOk?'✓ POS y sistema tienen el mismo total digital':'⚠️ POS y sistema no coinciden por método'}</div>
+    <div class="rows">
+      <div class="row"><span>Depósito</span><span class="value">${signed(depDiff)}</span></div>
+      <div class="row"><span>Tarjeta</span><span class="value">${signed(cardDiff)}</span></div>
+      <div class="row"><span>Diferencia digital neta</span><span class="value">${signed(digitalDiff)}</span></div>
+    </div>
+    ${crossText?`<div style="margin-top:10px;font-weight:700">${crossText}</div>`:''}
+    ${cross>0 && Math.abs(digitalDiff)>0.005?`<div class="muted" style="margin-top:6px">El cruce explica ${money(cross)}. Queda ${money(Math.abs(digitalDiff))} de diferencia neta digital por revisar.</div>`:''}
+  </div>`;
+
+  document.getElementById('result').innerHTML=html;
+  return {opening,sysCash,sysDeposit,sysCard,posDeposit,posCard,cash,expectedCash,cashDiff,depDiff,cardDiff,digitalDiff,cross};
+}
+
+function toggleCounter(){
+  const panel=document.getElementById('denomCounter');
+  const btn=document.getElementById('counterToggle');
+  const open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  btn.textContent=open?'✕ Cerrar contador':'🧮 Contar billetes y monedas';
+}
+function useDenomTotal(){
+  const total=[...document.querySelectorAll('.qty')].reduce((sum,el)=>sum+(parseFloat(el.value)||0)*(parseFloat(el.dataset.value)||0),0);
+  document.getElementById('cashDirect').value=(Math.round(total*100)/100).toFixed(2);
+  calculate(); autoSave();
+  document.getElementById('cashDirect').focus();
+}
+
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{calculate(); autoSave();}));
+
+function autoSave(){
+  const data={}; document.querySelectorAll('input[id]').forEach(i=>data[i.id]=i.value);
+  data.qty=[...document.querySelectorAll('.qty')].map(i=>i.value);
+  localStorage.setItem('cashDraft',JSON.stringify(data));
+}
+function loadDraft(){
+  try{
+    const d=JSON.parse(localStorage.getItem('cashDraft')||'null'); if(!d)return;
+    document.querySelectorAll('input[id]').forEach(i=>{if(d[i.id]!=null)i.value=d[i.id]});
+    document.querySelectorAll('.qty').forEach((i,k)=>{if(d.qty?.[k]!=null)i.value=d.qty[k]});
+  }catch{}
+}
+function clearForm(){
+  if(!confirm('¿Limpiar los datos actuales?'))return;
+  document.querySelectorAll('input').forEach(i=>i.value=i.classList.contains('qty')?'0':'');
+  calculate(); autoSave();
+}
+function saveClose(){
+  const c=calculate(), now=new Date();
+  const finalTotal=Math.round((c.cashDiff+c.digitalDiff)*100)/100;
+  const item={
+    id:Date.now(),
+    date:now.toLocaleString('es-PE'),
+    opening:c.opening,sysCash:c.sysCash,sysDeposit:c.sysDeposit,sysCard:c.sysCard,
+    posDeposit:c.posDeposit,posCard:c.posCard,
+    cash:c.cash,expectedCash:c.expectedCash,
+    cashDiff:c.cashDiff,depDiff:c.depDiff,cardDiff:c.cardDiff,digitalDiff:c.digitalDiff,
+    cross:c.cross,total:finalTotal,
+    status:Math.abs(finalTotal)<0.005?'cuadra':finalTotal<0?'falta':'sobra'
+  };
+  const h=JSON.parse(localStorage.getItem('cashHistory')||'[]');
+  h.unshift(item);
+  localStorage.setItem('cashHistory',JSON.stringify(h.slice(0,50)));
+  alert('Cierre guardado en este dispositivo.');
+  showHistory();
+}
+function loadHistoryItem(id){
+  const h=JSON.parse(localStorage.getItem('cashHistory')||'[]');
+  const x=h.find(v=>String(v.id)===String(id));
+  if(!x)return;
+  const values={opening:x.opening,sysCash:x.sysCash,sysDeposit:x.sysDeposit,sysCard:x.sysCard,posDeposit:x.posDeposit,posCard:x.posCard,cashDirect:x.cash};
+  Object.entries(values).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=Number(val||0).toFixed(2)});
+  calculate(); autoSave();
+  document.getElementById('history').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showHistory(){
+  const box=document.getElementById('history'); box.style.display='block';
+  const h=JSON.parse(localStorage.getItem('cashHistory')||'[]');
+  document.getElementById('historyList').innerHTML=h.length?h.map(x=>{
+    const total=Number(x.total ?? ((x.cashDiff||0)+(x.digitalDiff||0)));
+    const cls=Math.abs(total)<.005?'success':total<0?'danger':'warntext';
+    const label=Math.abs(total)<.005?'Cuadra':total<0?'Falta':'Sobra';
+    return `<div class="history-item"><div class="history-top"><span>${x.date}</span><span class="${cls}">${label} ${money(Math.abs(total))}</span></div><div class="small">Efectivo ${money(x.cashDiff)} · Digital ${signed(x.digitalDiff)} · Total ${signed(total)}</div><div style="margin-top:8px"><button class="btn secondary" type="button" onclick="loadHistoryItem('${x.id}')">Cargar cierre</button></div></div>`;
+  }).join(''):'<div class="muted">Todavía no hay cierres guardados.</div>';
+}
+function clearHistory(){if(confirm('¿Borrar todo el historial local?')){localStorage.removeItem('cashHistory');showHistory();}}
+loadDraft(); calculate();
+</script>
+
+<section class="card final-total-card" id="finalTotalCard">
+  <h2>💰 Resultado final</h2>
+  <div class="final-total-label">Diferencia total de caja</div>
+  <div class="final-total-value" id="grandTotal">S/ 0.00</div>
+  <div class="final-total-status" id="grandTotalStatus">Ingresa los datos y verifica el cierre.</div>
+  <div class="final-total-breakdown">
+    <div><span>Efectivo</span><strong id="finalCashDiff">S/ 0.00</strong></div>
+    <div><span>Depósito</span><strong id="finalDepositDiff">S/ 0.00</strong></div>
+    <div><span>Tarjeta</span><strong id="finalCardDiff">S/ 0.00</strong></div>
+  </div>
+</section>
+
+
+<script id="final-total-logic">
+(function(){
+  function n(id){
+    const el=document.getElementById(id);
+    return el ? (Number(el.value)||0) : 0;
+  }
+  function money(v){
+    const sign=v<0?'-':'';
+    return sign+'S/ '+Math.abs(v).toFixed(2);
+  }
+  function calcFinal(){
+    // Use the same fields as the main calculator.
+    const opening=n('opening');
+    const systemCash=n('sysCash');
+    const cashCounted=n('cashDirect');
+    const expectedCash=opening+systemCash;
+    const cashDiff=cashCounted-expectedCash;
+
+    const depositDiff=n('posDeposit')-n('sysDeposit');
+    const cardDiff=n('posCard')-n('sysCard');
+    const digitalDiff=depositDiff+cardDiff;
+
+    // The final amount is the signed net difference across cash and POS.
+    // A cash shortage of S/10 plus a net digital shortage of S/10.80 = S/20.80 missing.
+    const total=cashDiff+digitalDiff;
+
+    const totalEl=document.getElementById('grandTotal');
+    const status=document.getElementById('grandTotalStatus');
+    if(!totalEl) return;
+
+    totalEl.textContent=money(total);
+    document.getElementById('finalCashDiff').textContent=money(cashDiff);
+    document.getElementById('finalDepositDiff').textContent=money(depositDiff);
+    document.getElementById('finalCardDiff').textContent=money(cardDiff);
+
+    if(Math.abs(total)<0.005){
+      status.textContent='🟢 Caja cuadrada';
+    } else if(total<0){
+      status.textContent='🔴 Falta '+money(Math.abs(total));
+    } else {
+      status.textContent='🟢 Sobra '+money(total);
+    }
+  }
+
+  document.addEventListener('input',calcFinal);
+  document.addEventListener('change',calcFinal);
+  window.addEventListener('load',()=>setTimeout(calcFinal,50));
+})();
+</script>
+
+</body>
+</html>
